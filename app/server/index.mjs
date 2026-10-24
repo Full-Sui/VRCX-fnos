@@ -27,7 +27,7 @@ const HOST_PID_FILE = path.join(DATA_DIR, 'host.pid');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'home'), { recursive: true });
 
-const APP_VERSION = '1.0.16';
+const APP_VERSION = '1.0.17';
 const defaultConfig = {
     proxy: '',
     autoStart: true,
@@ -828,7 +828,7 @@ const server = http.createServer(async (req, res) => {
             } catch (err) {
                 console.error('[bootstrap] storage failed:', err.message);
             }
-            return sendJson(res, 200, { version, storage, basePath: BASE_PATH });
+            return sendJson(res, 200, { version, storage, basePath: BASE_PATH, startedAt: hostStartedAt || Date.now() });
         }
 
         if (pathname === '/api/storage' && req.method === 'POST') {

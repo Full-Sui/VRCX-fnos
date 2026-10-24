@@ -614,7 +614,7 @@
     });
 
     const appUptimeText = computed(() => {
-        const elapsedSeconds = Math.floor((now.value.getTime() - vrcxStore.appStartAt) / 1000);
+        const elapsedSeconds = Math.floor((now.value.getTime() - (window.__VRCX_APP_START_AT__ || vrcxStore.appStartAt)) / 1000);
         return formatAppUptime(elapsedSeconds);
     });
 

@@ -1,5 +1,5 @@
 appname               = vrcx
-version               = 1.0.16
+version               = 1.0.17
 display_name          = VRCX
 desc                  = VRCX 的飞牛 NAS 网页版：把 VRCX 主界面与好友/世界/头像/动态等功能搬到浏览器，资源全部在 NAS 本地加载，支持飞牛统一网关与 FnConnect。提供 2 个桌面入口：管理器与 VRCX WebUI。
 platform              = x86
@@ -13,4 +13,4 @@ desktop_applaunchname = vrcx.admin.Application
 micro_app             = true
 checkport             = false
 ctl_stop              = true
-checksum              = 7ca5c44d92fb6463140eb57243cf02a7
+checksum              = dc3fb07a849474903b7de649a9d004d1

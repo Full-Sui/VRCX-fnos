@@ -456,6 +456,7 @@ export async function initWebBridge() {
         if (response.ok) {
             const data = await response.json();
             version = data.version || version;
+            window.__VRCX_APP_START_AT__ = data.startedAt || Date.now();
             storageMap = new Map(Object.entries(data.storage || {}));
         }
     } catch (err) {
