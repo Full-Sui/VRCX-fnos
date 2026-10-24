@@ -1,0 +1,108 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputPath>..\build\Electron\$(RuntimeIdentifier)\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <Configurations>Debug;Release</Configurations>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>linux-x64;linux-arm64;win-x64;win-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.*</ApplicationVersion>
+    <ApplicationIcon>..\images\VRCX.ico</ApplicationIcon>
+    <AssemblyName>VRCX-Electron</AssemblyName>
+    <AssemblyTitle>VRCX</AssemblyTitle>
+    <Product>VRCX</Product>
+    <Copyright>vrcx-team, pypy, natsumi</Copyright>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <Title>VRCX</Title>
+    <Description>VRCX</Description>
+    <PackageIcon>..\images\VRCX.png</PackageIcon>
+    <RepositoryUrl>https://github.com/vrcx-team/VRCX</RepositoryUrl>
+    <ResourceLanguages>en</ResourceLanguages>
+    <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>LINUX</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Debug build" Condition="'$(Configuration)'=='Debug'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Label="Release build" Condition="'$(Configuration)'=='Release'">
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="app.manifest" />
+    <None Include="..\Version">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libs\openvr_api.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>openvr_api.dll</TargetPath>
+    </None>
+    <Content Include="..\images\VRCX.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\images\VRCX_notify.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\images\VRCX.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.JavaScript.NodeApi" Version="0.9.27" />
+    <PackageReference Include="Microsoft.JavaScript.NodeApi.Generator" Version="0.9.27" />
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NLog" Version="6.2.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+    <PackageReference Include="SourceGear.sqlite3" Version="3.53.4" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.12" />
+    <PackageReference Condition="'$(RuntimeIdentifier)'=='linux-arm64'" Include="System.Data.SQLite" Version="2.0.3" />
+    <PackageReference Condition="'$(RuntimeIdentifier)'=='win-arm64'" Include="System.Data.SQLite" Version="2.0.4" />
+    <PackageReference Condition="'$(RuntimeIdentifier)'!='linux-arm64' and '$(RuntimeIdentifier)'!='win-arm64'" Include="System.Data.SQLite" Version="1.0.119" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
+    <PackageReference Include="System.Management" Version="10.0.12" />
+    <PackageReference Include="Websocket.Client" Version="5.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="obj\**" />
+    <Compile Remove="obj\**" />
+    <Content Remove="Cef\**" />
+    <Compile Remove="Cef\**" />
+    <Content Remove="AppApi\Cef\**" />
+    <Compile Remove="AppApi\Cef\**" />
+    <Content Remove="Overlay\Cef\**" />
+    <Compile Remove="Overlay\Cef\**" />
+    <Content Remove="OverlayWebSocket\**" />
+    <Compile Remove="OverlayWebSocket\**" />
+    <Content Remove="DBMerger\**" />
+    <Compile Remove="DBMerger\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Blake2Sharp">
+      <HintPath>libs\Blake2Sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="librsync.net">
+      <HintPath>libs\librsync.net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

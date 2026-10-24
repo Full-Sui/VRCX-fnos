@@ -1,0 +1,141 @@
+#!/bin/bash
+# VRCX NAS gateway lifecycle helpers.
+umask 077
+
+APP_NAME="vrcx"
+APP_DIR="${TRIM_APPDEST}"
+DATA_DIR="${TRIM_PKGVAR}"
+SOCKET="${APP_DIR}/app.sock"
+PID_FILE="${DATA_DIR}/app.pid"
+HOST_PID_FILE="${DATA_DIR}/host.pid"
+LOG_FILE="${DATA_DIR}/info.log"
+NODE_BIN="/var/apps/nodejs_v24/target/bin/node"
+BASE_PATH="/app/vrcx"
+
+log_msg() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "${LOG_FILE}"; }
+log_temp_msg() { echo "$*" >> "${TRIM_TEMP_LOGFILE}"; }
+
+ensure_dirs() {
+    mkdir -p "${DATA_DIR}/logs" "${DATA_DIR}/home/.config" 2>/dev/null
+}
+
+start_process() {
+    if [ ! -x "${NODE_BIN}" ]; then
+        log_temp_msg "找不到系统 Node.js v24 运行时：${NODE_BIN}"
+        return 1
+    fi
+    if [ ! -f "${APP_DIR}/server/index.mjs" ]; then
+        log_temp_msg "应用文件不完整：${APP_DIR}/server/index.mjs 不存在"
+        return 1
+    fi
+    if [ -f "${PID_FILE}" ] && kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+        return 0
+    fi
+
+    ensure_dirs
+    if [ -f "${LOG_FILE}" ] && [ "$(stat -c %s "${LOG_FILE}" 2>/dev/null || echo 0)" -gt 5242880 ]; then
+        mv -f "${LOG_FILE}" "${LOG_FILE}.1" 2>/dev/null
+    fi
+    rm -f "${SOCKET}" "${PID_FILE}"
+    cd "${APP_DIR}" || return 1
+
+    env -i \
+        PATH="${APP_DIR}/bin:/usr/local/bin:/usr/bin:/bin" \
+        HOME="${DATA_DIR}/home" \
+        TMPDIR="/tmp" \
+        LANG="zh_CN.UTF-8" \
+        LC_ALL="zh_CN.UTF-8" \
+        VRCX_APP_DIR="${APP_DIR}" \
+        VRCX_DATA_DIR="${DATA_DIR}" \
+        VRCX_SOCKET="${SOCKET}" \
+        VRCX_BASE_PATH="${BASE_PATH}" \
+        "${NODE_BIN}" "${APP_DIR}/server/index.mjs" \
+        < /dev/null >> "${LOG_FILE}" 2>&1 &
+
+    echo $! > "${PID_FILE}"
+
+    for _ in $(seq 1 90); do
+        if [ -S "${SOCKET}" ]; then
+            log_msg "started pid=$(cat "${PID_FILE}") socket=${SOCKET}"
+            return 0
+        fi
+        if ! kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+            log_temp_msg "进程提前退出，详见 ${LOG_FILE}"
+            return 1
+        fi
+        sleep 1
+    done
+    log_temp_msg "启动超时，详见 ${LOG_FILE}"
+    return 1
+}
+
+stop_process() {
+    if [ -f "${PID_FILE}" ]; then
+        _pid="$(cat "${PID_FILE}")"
+        kill "${_pid}" 2>/dev/null
+        for _ in $(seq 1 30); do
+            kill -0 "${_pid}" 2>/dev/null || break
+            sleep 0.3
+        done
+        kill -9 "${_pid}" 2>/dev/null
+        rm -f "${PID_FILE}"
+    fi
+    if [ -f "${HOST_PID_FILE}" ]; then
+        _hpid="$(cat "${HOST_PID_FILE}")"
+        kill "${_hpid}" 2>/dev/null
+        sleep 0.5
+        kill -9 "${_hpid}" 2>/dev/null
+        rm -f "${HOST_PID_FILE}"
+    fi
+    rm -f "${SOCKET}"
+    return 0
+}
+
+status() {
+    if [ -f "${PID_FILE}" ] && kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then
+        return 0
+    fi
+    return 3
+}
+
+install_init() {
+    ensure_dirs
+    return 0
+}
+
+install_callback() {
+    ensure_dirs
+    chmod +x "${APP_DIR}/bin/node" "${APP_DIR}/bin/VRCXWebHost" 2>/dev/null
+    chmod +x "${APP_DIR}/server/index.mjs" 2>/dev/null
+    log_msg "installed version=1.0.10 to ${APP_DIR}"
+    start_process || true
+    return 0
+}
+
+upgrade_init() {
+    stop_process
+    return 0
+}
+
+upgrade_callback() {
+    ensure_dirs
+    chmod +x "${APP_DIR}/bin/node" "${APP_DIR}/bin/VRCXWebHost" 2>/dev/null
+    log_msg "upgraded to version=1.0.10"
+    start_process || true
+    return 0
+}
+
+uninstall_init() {
+    stop_process
+    return 0
+}
+
+uninstall_callback() {
+    if [ "$wizard_data_action" = "delete" ]; then
+        rm -rf "${DATA_DIR}"
+    fi
+    return 0
+}
+
+config_init() { return 0; }
+config_callback() { return 0; }
