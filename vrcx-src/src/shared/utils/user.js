@@ -1,5 +1,5 @@
 import { HueToHex } from './base/ui';
-import { convertFileUrlToImageUrl } from './common';
+import { convertFileUrlToImageUrl, proxyImageUrl } from './common';
 import { languageMappings } from '../constants';
 import { removeEmojis } from './base/string';
 
@@ -318,24 +318,24 @@ function userImage(user, isIcon = false, resolution = '128') {
     }
     if (user.iconUrl) {
         if (isIcon) {
-            return convertFileUrlToImageUrl(user.iconUrl);
+            return proxyImageUrl(convertFileUrlToImageUrl(user.iconUrl));
         }
-        return user.iconUrl;
+        return proxyImageUrl(user.iconUrl);
     }
     if (user.thumbnailUrl) {
-        return user.thumbnailUrl;
+        return proxyImageUrl(user.thumbnailUrl);
     }
     if (user.currentAvatarThumbnailImageUrl) {
         if (isIcon) {
-            return user.currentAvatarThumbnailImageUrl.replace('/256', `/${resolution}`);
+            return proxyImageUrl(user.currentAvatarThumbnailImageUrl.replace('/256', `/${resolution}`));
         }
-        return user.currentAvatarThumbnailImageUrl;
+        return proxyImageUrl(user.currentAvatarThumbnailImageUrl);
     }
     if (user.currentAvatarImageUrl) {
         if (isIcon) {
-            return convertFileUrlToImageUrl(user.currentAvatarImageUrl);
+            return proxyImageUrl(convertFileUrlToImageUrl(user.currentAvatarImageUrl));
         }
-        return user.currentAvatarImageUrl;
+        return proxyImageUrl(user.currentAvatarImageUrl);
     }
     return '';
 }
@@ -349,12 +349,12 @@ function userImageFull(user) {
         return '';
     }
     if (user.iconUrl) {
-        return user.iconUrl;
+        return proxyImageUrl(user.iconUrl);
     }
     if (user.profilePicOverride) {
-        return user.profilePicOverride;
+        return proxyImageUrl(user.profilePicOverride);
     }
-    return user.currentAvatarImageUrl;
+    return proxyImageUrl(user.currentAvatarImageUrl);
 }
 
 /**

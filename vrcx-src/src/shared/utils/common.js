@@ -10,6 +10,15 @@ import { getAvailablePlatforms } from './platformUtils';
  * @param endpointDomain
  * @returns {string}
  */
+function proxyImageUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    if (typeof window === 'undefined' || !window.__VRCX_WEB__ || !window.__VRCX_API_BASE__) return url;
+    if (!/^https:\/\/(api\.vrchat\.cloud|files\.vrchat\.cloud|d348imysud55la\.cloudfront\.net|assets\.vrchat\.com)\//i.test(url)) {
+        return url;
+    }
+    return `${window.__VRCX_API_BASE__}image?url=${encodeURIComponent(url)}`;
+}
+
 function convertFileUrlToImageUrl(url, resolution = 128, endpointDomain = AppDebug.endpointDomain) {
     if (!url || typeof url !== 'string') {
         return '';
@@ -29,10 +38,10 @@ function convertFileUrlToImageUrl(url, resolution = 128, endpointDomain = AppDeb
     if (match) {
         const fileId = match[1];
         const version = match[2];
-        return `${endpointDomain}/image/file_${fileId}/${version}/${resolution}`;
+        return proxyImageUrl(`${endpointDomain}/image/file_${fileId}/${version}/${resolution}`);
     }
     // no match return origin url
-    return url;
+    return proxyImageUrl(url);
 }
 
 /**
@@ -65,6 +74,7 @@ export {
     getAvailablePlatforms,
     getFaviconUrl,
     convertFileUrlToImageUrl,
+    proxyImageUrl,
     replaceVrcPackageUrl,
     extractFileId,
     extractFileVersion,
