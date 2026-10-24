@@ -18,6 +18,19 @@ rm -f "${ROOT}/app/bin/node"
 rm -rf "${ROOT}/app/ui"
 cp -a "${FPK_DIR}/ui" "${ROOT}/app/ui"
 
+echo "==> syncing app version ${VERSION}"
+python3 - "${ROOT}/app/server/index.mjs" "${ROOT}/app/manager/index.html" "${VERSION}" <<'PY'
+import re, sys
+server, manager, version = sys.argv[1], sys.argv[2], sys.argv[3]
+text = open(server, encoding='utf-8').read()
+text = re.sub(r"const APP_VERSION = '[^']*';", f"const APP_VERSION = '{version}';", text)
+open(server, 'w', encoding='utf-8').write(text)
+text = open(manager, encoding='utf-8').read()
+text = re.sub(r'(id="hero-version">)[^<]*', rf'\g<1>{version}', text)
+text = re.sub(r'(id="about-version">)[^<]*', rf'\g<1>{version}', text)
+open(manager, 'w', encoding='utf-8').write(text)
+PY
+
 echo "==> packing app.tgz"
 rm -f "${FPK_DIR}/app.tgz"
 tar -czf "${FPK_DIR}/app.tgz" \
