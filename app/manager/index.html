@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>VRCX 管理器</title>
+        <link rel="icon" href="images/icon_64.png" />
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="app">
+            <aside class="sidebar">
+                <div class="brand">
+                    <img src="images/VRCX.png" alt="VRCX" />
+                    <div class="brand-text">
+                        <strong>VRCX</strong>
+                        <span>飞牛 NAS 版</span>
+                    </div>
+                </div>
+
+                <nav class="nav">
+                    <button class="nav-item active" data-panel="overview" data-title="概览">
+                        <svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z" /></svg>
+                        概览
+                    </button>
+                    <button class="nav-item" data-panel="proxy" data-title="网络代理">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.9 9h-3.1a15.7 15.7 0 0 0-1.2-5.1A8 8 0 0 1 19.9 11ZM12 4c.9 1.2 1.7 3.2 1.9 7h-3.8c.2-3.8 1-5.8 1.9-7ZM4.1 13h3.1c.2 1.9.6 3.6 1.2 5.1A8 8 0 0 1 4.1 13Zm3.1-2H4.1a8 8 0 0 1 4.3-5.1A15.7 15.7 0 0 0 7.2 11ZM12 20c-.9-1.2-1.7-3.2-1.9-7h3.8c-.2 3.8-1 5.8-1.9 7Zm4.6-1.9c.6-1.5 1-3.2 1.2-5.1h3.1a8 8 0 0 1-4.3 5.1Z" /></svg>
+                        网络代理
+                    </button>
+                    <button class="nav-item" data-panel="update" data-title="检查更新">
+                        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6a6 6 0 1 1-5.7 8H4.3A8 8 0 1 0 12 4Z" /></svg>
+                        检查更新
+                    </button>
+                    <button class="nav-item" data-panel="logs" data-title="运行日志">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4V4Zm0 5h16v2H4V9Zm0 5h10v2H4v-2Zm0 5h16v2H4v-2Z" /></svg>
+                        运行日志
+                    </button>
+                </nav>
+
+                <div class="sidebar-foot">
+                    <button class="nav-item" data-panel="about" data-title="应用设置">
+                        <svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-1.7-1L15 3h-4l-.3 3a7.3 7.3 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.8 7.8 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.3 7.3 0 0 0 1.7 1L11 21h4l.3-3a7.3 7.3 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" /></svg>
+                        应用设置
+                    </button>
+                </div>
+            </aside>
+
+            <main class="main">
+                <header class="page-head">
+                    <h1 id="page-title">概览</h1>
+                    <span class="deploy">部署：<span id="deploy-time">—</span></span>
+                </header>
+
+                <section class="panel active" id="panel-overview">
+                    <div class="hero card">
+                        <div class="hero-top">
+                            <div class="hero-text">
+                                <h2>VRCX</h2>
+                                <p>版本 <span id="hero-version">1.0.10</span> · 飞牛 NAS 网页版</p>
+                            </div>
+                            <button id="btn-enter" class="btn btn-blue btn-lg">进入 VRCX <span>↗</span></button>
+                        </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-label">运行状态</span>
+                                <strong id="state-text" class="stat-value">—</strong>
+                                <span id="state-dot" class="dot dot-off"></span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">运行时间</span>
+                                <strong id="uptime" class="stat-value">—</strong>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">进程 PID</span>
+                                <strong id="pid" class="stat-value">—</strong>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">CPU 占用</span>
+                                <strong id="cpu" class="stat-value">—</strong>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">内存占用</span>
+                                <strong id="memory" class="stat-value">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">运行控制</h3>
+                    <div class="controls">
+                        <button id="btn-stop" class="control">
+                            <span class="control-icon red"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg></span>
+                            <strong>停止服务</strong>
+                        </button>
+                        <button id="btn-restart" class="control">
+                            <span class="control-icon orange"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.3-5.7"/><path d="M20 4v7h-7"/></svg></span>
+                            <strong>重启服务</strong>
+                        </button>
+                        <button id="btn-goto-update" class="control">
+                            <span class="control-icon blue"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></span>
+                            <strong>检查更新</strong>
+                        </button>
+                        <button id="btn-redeploy" class="control">
+                            <span class="control-icon purple"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M4 7 12 2l8 5"/><path d="M12 11v6"/><path d="m9 14 3 3 3-3"/></svg></span>
+                            <strong>重新部署</strong>
+                        </button>
+                    </div>
+
+                </section>
+
+                <section class="panel" id="panel-proxy">
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>网络代理</h2>
+                            <span class="muted">默认不使用</span>
+                        </div>
+                        <p class="hint">VRCX 访问 VRChat API / WebSocket 以及更新检查时使用的代理。留空为直连。</p>
+                        <label class="field">
+                            <span>代理地址</span>
+                            <input id="proxy" type="text" placeholder="例如 http://127.0.0.1:7890" autocomplete="off" spellcheck="false" />
+                        </label>
+                        <p class="hint">支持 <code>http://</code>、<code>https://</code>、<code>socks5://</code>；保存后会自动重启服务。</p>
+                        <div class="actions">
+                            <button id="btn-save-proxy" class="btn btn-blue">保存并重启</button>
+                            <button id="btn-clear-proxy" class="btn">清除代理</button>
+                        </div>
+                        <p id="proxy-msg" class="msg"></p>
+                    </div>
+                </section>
+
+                <section class="panel" id="panel-update">
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>检查更新</h2>
+                            <span class="muted">VRCX 上游</span>
+                        </div>
+                        <p class="hint">从你配置的 GitHub 仓库读取最新 Release 中的 <code>.fpk</code>，支持检查并一键安装。</p>
+                        <label class="field">
+                            <span>更新仓库（owner/repo）</span>
+                            <input id="update-repo" type="text" placeholder="例如 yourname/vrcx-fnos" autocomplete="off" spellcheck="false" />
+                        </label>
+                        <div class="actions">
+                            <button id="btn-save-repo" class="btn">保存仓库</button>
+                            <button id="btn-check-update" class="btn btn-blue">检查更新</button>
+                        </div>
+                        <div id="update-result" class="update-box">尚未检查</div>
+                    </div>
+                </section>
+
+                <section class="panel" id="panel-logs">
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>运行日志</h2>
+                            <button id="btn-refresh-logs" class="btn">刷新</button>
+                        </div>
+                        <pre id="logs" class="logs">加载中…</pre>
+                    </div>
+                </section>
+
+                <section class="panel" id="panel-about">
+                    <div class="card">
+                        <div class="card-head">
+                            <h2>应用设置</h2>
+                        </div>
+                        <div class="about-grid">
+                            <div><span>应用</span><strong>VRCX 管理器</strong></div>
+                            <div><span>版本</span><strong id="about-version">1.0.10</strong></div>
+                            <div><span>内置 VRCX</span><strong>2026.09.16</strong></div>
+                            <div><span>运行方式</span><strong>飞牛网关 / Node + .NET</strong></div>
+                        </div>
+                        <p class="hint" style="margin-top:18px">数据目录：<code>/vol1/@appdata/vrcx</code>。升级或卸载不会删除数据（除非卸载时选择删除数据）。</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <script src="app.js"></script>
+    </body>
+</html>

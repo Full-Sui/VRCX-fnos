@@ -1,0 +1,40 @@
+{
+    ".url": {
+        "vrcx.admin.Application": {
+            "title": "VRCX 管理器",
+            "desc": "启动、停止、更新与代理设置",
+            "icon": "images/icon_{0}.png",
+            "type": "iframe",
+            "protocol": "http",
+            "gatewaySocket": "app.sock",
+            "gatewayPrefix": "/app/vrcx",
+            "url": "/app/vrcx/",
+            "allUsers": false,
+            "noDisplay": false,
+            "control": {
+                "accessPerm": "readonly",
+                "fullUrlPerm": "readonly",
+                "portPerm": "readonly",
+                "pathPerm": "readonly"
+            }
+        },
+        "vrcx.Application": {
+            "title": "VRCX",
+            "desc": "VRChat 伴侣 WebUI",
+            "icon": "images/icon_{0}.png",
+            "type": "iframe",
+            "protocol": "http",
+            "gatewaySocket": "app.sock",
+            "gatewayPrefix": "/app/vrcx",
+            "url": "/app/vrcx/webui/",
+            "allUsers": false,
+            "noDisplay": false,
+            "control": {
+                "accessPerm": "readonly",
+                "fullUrlPerm": "readonly",
+                "portPerm": "readonly",
+                "pathPerm": "readonly"
+            }
+        }
+    }
+}

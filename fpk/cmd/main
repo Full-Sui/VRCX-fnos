@@ -1,0 +1,9 @@
+#!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "${SCRIPT_DIR}/common"
+case $1 in
+  start)  start_process; exit $? ;;
+  stop)   stop_process;  exit $? ;;
+  status) status && exit 0 || exit 3 ;;
+  *)      exit 1 ;;
+esac

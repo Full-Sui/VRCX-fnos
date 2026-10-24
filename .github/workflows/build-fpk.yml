@@ -1,0 +1,84 @@
+name: Build VRCX fnOS FPK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "FPK version (e.g. 1.0.10)"
+        required: true
+        default: "1.0.10"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install VRCX frontend dependencies
+        working-directory: vrcx-src
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build VRCX frontend
+        working-directory: vrcx-src
+        run: npx vite build src
+
+      - name: Publish VRCX backend
+        working-directory: vrcx-src/WebHost
+        run: >
+          dotnet publish -c Release -r linux-x64 --self-contained true
+          -p:Platform=x64 -p:WarningLevel=0
+          -o "$GITHUB_WORKSPACE/app/bin"
+
+      - name: Install gateway dependencies
+        working-directory: app/server
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Assemble application tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf app/webui
+          cp -a vrcx-src/build/html app/webui
+          rm -rf app/ui
+          cp -a fpk/ui app/ui
+          rm -f app/app.sock
+          rm -rf app/VRCX
+          rm -f app/bin/node
+
+      - name: Build FPK
+        shell: bash
+        run: bash build-fpk.sh "${{ inputs.version }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrcx-fnos-${{ inputs.version }}
+          path: vrcx_${{ inputs.version }}_x86.fpk
+          retention-days: 14
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: VRCX fnOS ${{ inputs.version }}
+          body: |
+            VRCX 飞牛 NAS 网页版 ${{ inputs.version }}
+
+            安装包：`vrcx_${{ inputs.version }}_x86.fpk`
+            依赖：`nodejs_v24`
+          files: vrcx_${{ inputs.version }}_x86.fpk
+          generate_release_notes: true

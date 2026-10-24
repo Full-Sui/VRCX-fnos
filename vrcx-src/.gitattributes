@@ -1,0 +1,60 @@
+###############################################################################
+# Normalize text to LF by default, with CRLF for Windows-specific files.
+###############################################################################
+* text=auto eol=lf
+
+# general files
+*.cmd                       text eol=crlf
+*.bat                       text eol=crlf
+*.nsi                       text eol=crlf
+*.nsh                       text eol=crlf
+*.yaml                      text eol=lf
+*.yml                       text eol=lf
+*.md                        text eol=lf
+*.txt                       text eol=lf
+*.json                      text eol=lf
+
+# dotnet files
+*.cs                        text eol=crlf
+*.sln                       text eol=crlf
+*.slnx                      text eol=crlf
+*.csproj                    text eol=crlf
+*.manifest                  text eol=crlf
+*.resx                      text eol=crlf
+
+# config files
+.git-blame-ignore-revs      text eol=lf
+.editorconfig               text eol=lf
+.gitignore                  text eol=lf
+.npmrc                      text eol=lf
+
+# VRCX specific
+Version                     text eol=lf
+
+# linux specific
+*.sh                        text eol=lf
+
+# cross platform
+*.ps1                       text eol=lf
+
+# web files
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.cjs       text eol=lf
+*.jsx       text eol=lf
+*.ts        text eol=lf
+*.mts       text eol=lf
+*.tsx       text eol=lf
+*.html      text eol=lf
+*.vue       text eol=lf
+*.css       text eol=lf
+*.svg       text eol=lf
+
+# binary files
+*.png   binary
+*.ico   binary
+*.pdb   binary
+*.dll   binary
+*.exe   binary
+*.so    binary
+*.crx   binary
