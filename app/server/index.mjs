@@ -27,7 +27,7 @@ const HOST_PID_FILE = path.join(DATA_DIR, 'host.pid');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'home'), { recursive: true });
 
-const APP_VERSION = '1.0.10';
+const APP_VERSION = '1.0.12';
 const defaultConfig = {
     proxy: '',
     autoStart: true,
@@ -460,8 +460,16 @@ function handleUpgrade(req, socket, head, pathname) {
         }
         const url = new URL(req.url, 'http://localhost');
         const browserToken = url.searchParams.get('auth') || '';
-        if (browserToken) pipelineToken = browserToken;
-        if (!pipelineSocket || pipelineSocket.readyState === WebSocket.CLOSED) {
+        if (browserToken && browserToken !== pipelineToken) {
+            pipelineToken = browserToken;
+            try {
+                pipelineSocket?.close();
+            } catch {
+                // ignore
+            }
+            pipelineSocket = null;
+            connectPipeline(browserToken);
+        } else if (!pipelineSocket || pipelineSocket.readyState === WebSocket.CLOSED) {
             connectPipeline(pipelineToken);
         }
         client.on('message', (data, isBinary) => {

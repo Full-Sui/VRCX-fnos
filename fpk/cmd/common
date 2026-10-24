@@ -107,7 +107,7 @@ install_callback() {
     ensure_dirs
     chmod +x "${APP_DIR}/bin/node" "${APP_DIR}/bin/VRCXWebHost" 2>/dev/null
     chmod +x "${APP_DIR}/server/index.mjs" 2>/dev/null
-    log_msg "installed version=1.0.10 to ${APP_DIR}"
+    log_msg "installed version=1.0.12 to ${APP_DIR}"
     start_process || true
     return 0
 }
@@ -120,7 +120,7 @@ upgrade_init() {
 upgrade_callback() {
     ensure_dirs
     chmod +x "${APP_DIR}/bin/node" "${APP_DIR}/bin/VRCXWebHost" 2>/dev/null
-    log_msg "upgraded to version=1.0.10"
+    log_msg "upgraded to version=1.0.12"
     start_process || true
     return 0
 }

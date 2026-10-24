@@ -466,6 +466,7 @@ export async function initWebBridge() {
     window.WINDOWS = false;
     window.isVrOverlay = false;
     window.__VRCX_WEB__ = true;
+    window.__VRCX_API_BASE__ = API_BASE;
     window.electron = makeElectronShim();
     window.interopApi = {
         callDotNetMethod: (className, methodName, args) => rpc(className, methodName, args)
