@@ -38,6 +38,7 @@ text = re.sub(r'^checksum\s*=.*$', f'checksum              = {checksum}', text, 
 open(path, 'w', encoding='utf-8').write(text)
 PY
 
+mkdir -p "${FPK_DIR}/wizard"
 echo "==> building ${OUT}"
 rm -f "${OUT}"
 cd "${FPK_DIR}"
