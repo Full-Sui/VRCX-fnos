@@ -27,7 +27,7 @@ const HOST_PID_FILE = path.join(DATA_DIR, 'host.pid');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'home'), { recursive: true });
 
-const APP_VERSION = '1.0.12';
+const APP_VERSION = '1.0.16';
 const defaultConfig = {
     proxy: '',
     autoStart: true,
@@ -544,6 +544,58 @@ function compareVersions(a, b) {
     return 0;
 }
 
+function fetchRedirect(url, proxy) {
+    return new Promise((resolve, reject) => {
+        const client = String(url).startsWith('https:') ? https : http;
+        const req = client.get(
+            url,
+            {
+                agent: proxyAgent(proxy),
+                headers: { 'User-Agent': 'VRCX-fnos-updater/1.0' },
+                timeout: 30000
+            },
+            (response) => {
+                if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+                    response.resume();
+                    fetchRedirect(response.headers.location, proxy).then(resolve, reject);
+                    return;
+                }
+                response.resume();
+                resolve(String(url));
+            }
+        );
+        req.on('timeout', () => req.destroy(new Error('timeout')));
+        req.on('error', reject);
+    });
+}
+
+async function fetchLatestRelease(repo, proxy) {
+    try {
+        const release = await fetchJson(`https://api.github.com/repos/${repo}/releases/latest`, proxy);
+        if (release && release.tag_name) return release;
+    } catch {
+        // fall through to HTML redirect
+    }
+    const finalUrl = await fetchRedirect(`https://github.com/${repo}/releases/latest`, proxy);
+    const match = finalUrl.match(/\/releases\/tag\/([^/?#]+)/);
+    if (!match) throw new Error('无法解析最新 Release');
+    const tag = decodeURIComponent(match[1]);
+    const version = tag.replace(/^v/, '');
+    const name = `vrcx_${version}_x86.fpk`;
+    return {
+        tag_name: tag,
+        html_url: finalUrl,
+        assets: [
+            {
+                name,
+                browser_download_url: `https://github.com/${repo}/releases/download/${encodeURIComponent(tag)}/${name}`,
+                size: 0,
+                digest: ''
+            }
+        ]
+    };
+}
+
 function downloadFile(url, destination, proxy, expectedDigest) {
     return new Promise((resolve, reject) => {
         const client = String(url).startsWith('https:') ? https : http;
@@ -552,7 +604,7 @@ function downloadFile(url, destination, proxy, expectedDigest) {
             {
                 agent: proxyAgent(proxy),
                 headers: { 'User-Agent': 'VRCX-fnos-updater/1.0', Accept: 'application/octet-stream' },
-                timeout: 120000
+                timeout: 600000
             },
             (response) => {
                 if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
@@ -664,7 +716,7 @@ async function managerApi(req, res, pathname, url) {
             if (!repo) {
                 return sendJson(res, 200, { ok: false, error: '未配置更新仓库，请在「检查更新」里填写 GitHub owner/repo' });
             }
-            const release = await fetchJson(`${String(cfg.updateApiBase || 'https://api.github.com').replace(/\/$/, '')}/repos/${repo}/releases/latest`, cfg.proxy);
+            const release = await fetchLatestRelease(repo, cfg.proxy);
             const latest = String(release.tag_name || '').replace(/^v/, '');
             const asset = (release.assets || []).find((item) => /\.fpk$/i.test(item.name || ''));
             return sendJson(res, 200, {
@@ -689,7 +741,7 @@ async function managerApi(req, res, pathname, url) {
             if (!repo) {
                 return sendJson(res, 200, { ok: false, error: '未配置更新仓库' });
             }
-            const release = await fetchJson(`${String(cfg.updateApiBase || 'https://api.github.com').replace(/\/$/, '')}/repos/${repo}/releases/latest`, cfg.proxy);
+            const release = await fetchLatestRelease(repo, cfg.proxy);
             const latest = String(release.tag_name || '').replace(/^v/, '');
             if (compareVersions(latest, APP_VERSION) <= 0) {
                 return sendJson(res, 200, { ok: false, error: '当前已经是最新版本' });
