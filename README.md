@@ -11,7 +11,7 @@
 
 ## 构建 FPK
 
-进入仓库的 **Actions → Build VRCX fnOS FPK → Run workflow**，填写版本号（例如 `1.0.15`），
+进入仓库的 **Actions → Build VRCX fnOS FPK → Run workflow**，填写版本号（例如 `1.0.16`），
 运行完成后会自动：
 
 - 构建 VRCX Vue 前端
@@ -33,7 +33,7 @@
 
 ## 版本约定
 
-- Release tag 必须是 `v<version>`，例如 `v1.0.15`
+- Release tag 必须是 `v<version>`，例如 `v1.0.16`
 - FPK 文件名必须是 `vrcx_<version>_x86.fpk`
 - Release 中必须包含该 FPK 资产
 
@@ -46,5 +46,5 @@ npm ci --ignore-scripts --prefix vrcx-src
 npm ci --ignore-scripts --prefix app/server
 rm -rf app/webui && cp -a vrcx-src/build/html app/webui
 rm -rf app/ui && cp -a fpk/ui app/ui
-bash build-fpk.sh 1.0.15
+bash build-fpk.sh 1.0.16
 ```
