@@ -4,19 +4,100 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "FPK version (e.g. 1.0.18)"
-        required: true
-        default: "1.0.18"
+        description: "FPK version (leave empty to use upstream release version)"
+        required: false
+        default: ""
+      upstream_ref:
+        description: "Upstream VRCX tag (leave empty for latest release)"
+        required: false
+        default: ""
+  schedule:
+    # Check upstream VRCX once a day (02:00 UTC / 10:00 China time)
+    - cron: "0 2 * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: vrcx-fnos-build
+  cancel-in-progress: false
+
 jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Resolve upstream VRCX release
+        id: resolve
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let tag = '${{ inputs.upstream_ref }}'.trim();
+            if (!tag) {
+              const release = await github.rest.repos.getLatestRelease({
+                owner: 'vrcx-team',
+                repo: 'VRCX'
+              });
+              tag = release.data.tag_name;
+            }
+            let version = '${{ inputs.version }}'.trim();
+            if (!version) {
+              version = tag.replace(/^v/i, '').replace(/-.*$/, '');
+              const parts = version.split('.');
+              if (parts.length >= 3 && parts.every((p) => /^\d+$/.test(p))) {
+                version = parts.map((p, i) => (i === 0 ? p : String(Number(p)))).join('.');
+              }
+            }
+            if (!tag || !version) {
+              core.setFailed('Could not resolve upstream tag or version');
+              return;
+            }
+            core.setOutput('tag', tag);
+            core.setOutput('version', version);
+
+      - name: Skip if this release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Release v${VERSION} already exists; skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
+      - name: Checkout build repository
         uses: actions/checkout@v4
+
+      - name: Checkout upstream VRCX source
+        uses: actions/checkout@v4
+        with:
+          repository: vrcx-team/VRCX
+          ref: ${{ needs.resolve.outputs.tag }}
+          path: upstream-src
+          fetch-depth: 1
+
+      - name: Replace source with upstream and apply fnOS overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf vrcx-src
+          mv upstream-src vrcx-src
+          rm -rf vrcx-src/.git
+          cp -a overlay/. vrcx-src/
+          test -f vrcx-src/WebHost/Program.cs
+          test -f vrcx-src/src/web/webBridge.js
 
       - name: Setup Node.js 24
         uses: actions/setup-node@v4
@@ -61,24 +142,27 @@ jobs:
 
       - name: Build FPK
         shell: bash
-        run: bash build-fpk.sh "${{ inputs.version }}"
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: bash build-fpk.sh "$VERSION"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vrcx-fnos-${{ inputs.version }}
-          path: vrcx_${{ inputs.version }}_x86.fpk
+          name: vrcx-fnos-${{ needs.resolve.outputs.version }}
+          path: vrcx_${{ needs.resolve.outputs.version }}_x86.fpk
           retention-days: 14
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: VRCX fnOS ${{ inputs.version }}
+          tag_name: v${{ needs.resolve.outputs.version }}
+          name: VRCX fnOS ${{ needs.resolve.outputs.version }}
           body: |
-            VRCX 飞牛 NAS 网页版 ${{ inputs.version }}
+            VRCX 飞牛 NAS 网页版 ${{ needs.resolve.outputs.version }}
 
-            安装包：`vrcx_${{ inputs.version }}_x86.fpk`
+            上游 VRCX：`${{ needs.resolve.outputs.tag }}`
+            安装包：`vrcx_${{ needs.resolve.outputs.version }}_x86.fpk`
             依赖：`nodejs_v24`
-          files: vrcx_${{ inputs.version }}_x86.fpk
+          files: vrcx_${{ needs.resolve.outputs.version }}_x86.fpk
           generate_release_notes: true
