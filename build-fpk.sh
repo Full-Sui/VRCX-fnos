@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-VERSION="${1:-1.0.17}"
+VERSION="${1:-1.0.18}"
 PKG="vrcx"
 FPK_DIR="${ROOT}/fpk"
 OUT="${ROOT}/${PKG}_${VERSION}_x86.fpk"

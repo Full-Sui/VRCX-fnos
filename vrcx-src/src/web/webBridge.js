@@ -419,16 +419,44 @@ function makeElectronShim() {
 }
 
 
+function imageProxyUrl(src) {
+    if (!src || typeof src !== 'string' || src.startsWith('data:') || src.startsWith('blob:')) return src;
+    if (!/^https:\/\/(api\.vrchat\.cloud|files\.vrchat\.cloud|d348imysud55la\.cloudfront\.net|assets\.vrchat\.com)\//i.test(src)) return src;
+    const encoded = btoa(unescape(encodeURIComponent(src))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    return `${API_BASE}image/${encoded}`;
+}
+
 function proxifyImageElement(image) {
     const src = image.getAttribute('src');
-    if (!src || src.startsWith('data:') || src.startsWith('blob:')) return;
-    if (!/^https:\/\/(api\.vrchat\.cloud|files\.vrchat\.cloud|d348imysud55la\.cloudfront\.net|assets\.vrchat\.com)\//i.test(src)) return;
-    image.setAttribute('src', `${API_BASE}image?url=${encodeURIComponent(src)}`);
+    if (!src) return;
+    const proxied = imageProxyUrl(src);
+    if (proxied !== src) image.setAttribute('src', proxied);
 }
 
 function startImageProxy() {
     if (window.__VRCX_IMAGE_PROXY__) return;
     window.__VRCX_IMAGE_PROXY__ = true;
+    window.__VRCX_IMAGE_PROXY_URL__ = imageProxyUrl;
+
+    // Catch images assigned through element.src = ... (Vue/reka-ui often does this).
+    try {
+        const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+        if (descriptor?.set && !descriptor.set.__vrcxProxy) {
+            const setter = descriptor.set;
+            const wrapped = function (value) {
+                try {
+                    value = imageProxyUrl(String(value));
+                } catch {
+                    // ignore
+                }
+                return setter.call(this, value);
+            };
+            wrapped.__vrcxProxy = true;
+            Object.defineProperty(HTMLImageElement.prototype, 'src', { ...descriptor, set: wrapped });
+        }
+    } catch {
+        // ignore
+    }
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             if (mutation.type === 'attributes' && mutation.target instanceof HTMLImageElement) {
