@@ -16,7 +16,8 @@ function proxyImageUrl(url) {
     if (!/^https:\/\/(api\.vrchat\.cloud|files\.vrchat\.cloud|d348imysud55la\.cloudfront\.net|assets\.vrchat\.com)\//i.test(url)) {
         return url;
     }
-    return `${window.__VRCX_API_BASE__}image?url=${encodeURIComponent(url)}`;
+    const encoded = btoa(unescape(encodeURIComponent(url))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    return `${window.__VRCX_API_BASE__}image/${encoded}`;
 }
 
 function convertFileUrlToImageUrl(url, resolution = 128, endpointDomain = AppDebug.endpointDomain) {

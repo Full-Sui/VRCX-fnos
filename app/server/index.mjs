@@ -27,7 +27,7 @@ const HOST_PID_FILE = path.join(DATA_DIR, 'host.pid');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, 'home'), { recursive: true });
 
-const APP_VERSION = '1.0.17';
+const APP_VERSION = '1.0.18';
 const defaultConfig = {
     proxy: '',
     autoStart: true,
@@ -793,8 +793,15 @@ const server = http.createServer(async (req, res) => {
             return await managerApi(req, res, pathname.replace('/api/manager', '') || '/', url);
         }
 
-        if (pathname === '/image' || pathname === '/api/image') {
-            const target = url.searchParams.get('url') || '';
+        if (pathname === '/image' || pathname === '/api/image' || pathname.startsWith('/api/image/')) {
+            let target = url.searchParams.get('url') || '';
+            if (pathname.startsWith('/api/image/')) {
+                try {
+                    target = Buffer.from(pathname.slice('/api/image/'.length), 'base64url').toString('utf8');
+                } catch {
+                    target = '';
+                }
+            }
             if (!/^https:\/\/(api\.vrchat\.cloud|files\.vrchat\.cloud|d348imysud55la\.cloudfront\.net|assets\.vrchat\.com)\//i.test(target)) {
                 return sendText(res, 400, 'invalid image url');
             }
